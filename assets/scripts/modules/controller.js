@@ -79,10 +79,26 @@ export const Controller = ((model, view) => {
 
   const editTodo = () => {
     const todolist = document.querySelectorAll(view.domstr.tasklist);
+    let isEditing = false;
+
+    function editing(input, text, event) {
+      if (isEditing) {
+        input.value = text.innerText;
+        input.style.display = "block";
+        text.style.display = "none";
+      }
+      if (!isEditing) {
+        text.innerText = event.target.value;
+        input.style.display = "none";
+        text.style.display = "block";
+      }
+    }
+
     todolist.forEach((todo) => {
       todo.addEventListener("click", (event) => {
         const [className, id] = event.target.className.split(" ");
         const [__, tasklist] = todo.className.split(" ");
+        isEditing = true
 
         let currentList =
           tasklist === "tasks-pending__container"
@@ -94,24 +110,18 @@ export const Controller = ((model, view) => {
             if (+task.id === +id) {
               const tasktext = document.querySelector(`.text${id}`);
               const taskinput = document.querySelector(`.input${id}`);
-              taskinput.value = tasktext.innerText;
-              taskinput.style.display = "block";
-              tasktext.style.display = "none";
+              editing(taskinput, tasktext);
               taskinput.addEventListener("keyup", (event) => {
                 if (event.key === "Enter") {
                   const updateTask = { ...task, content: event.target.value };
                   currentList = [...currentList, updateTask];
-                  tasktext.innerText = event.target.value;
-                  taskinput.style.display = "none";
-                  tasktext.style.display = "block";
+                  editing(taskinput, tasktext, event);
                   model.editTodo(id, updateTask);
+                  isEditing = false;
                 }
               });
             }
-          });
-
-          const findTask = currentList.find((task) => +task.id == +id);
-        }
+          });  }
       });
     });
   };
